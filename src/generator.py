@@ -40,7 +40,7 @@ class FakeDataGenerator:
             '__foreign_keys__': self._parse_foreign_keys,
         }
 
-        for attr_name, attr_value in self.model.__class__.__dict__.items():
+        for attr_name, attr_value in self.model.__dict__.items():
             try:
                 (special_attributes.get(attr_name))(attr_value)
             except TypeError:
@@ -50,6 +50,7 @@ class FakeDataGenerator:
         self.lang = lang.lower()
 
     def _set_limit(self, new_limit: int) -> None:
+        print(1)
         self.limit = new_limit
 
     def _parse_where_clause(self, where_clause: str):
