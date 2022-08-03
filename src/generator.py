@@ -1,14 +1,13 @@
-from typing import Dict, Callable, List, get_type_hints
-import random
+from typing import Dict, Callable, List, Union, get_type_hints
 
-from faker import Faker
+from expression import Expression
+from handlers import Handler
 
 
 class FakeDataGenerator:
     limit = 10
-    lang = 'en'
-    sql_operators_keywords = ('AND', 'OR')
-    sql_comparison_operators = ('>', '<', '>=', '<=', '=')
+    lang = 'en_US'
+    conditions_per_field: Dict[str, List[Expression]] = {}
 
     def __init__(self, model):
         self.model = model
@@ -17,18 +16,11 @@ class FakeDataGenerator:
     def generate_fake_data(self):
         self.parse_special_attributes()
         data = []
-        fake = Faker()
         for counter in range(1, self.limit + 1):
             item = {}
             for field_name in self.fields:
-                if 'name' in field_name:
-                    item[field_name] = fake.name()
-                elif 'id' in field_name:
-                    item[field_name] = counter
-                elif 'age' in field_name:
-                    item[field_name] = random.randint(1, 100)
-                else:
-                    item[field_name] = fake.text()
+                handler = Handler(self.lang, self.conditions_per_field)
+                handler.handle(item, field_name, counter)
             data.append(item)
         return data
 
@@ -47,26 +39,28 @@ class FakeDataGenerator:
                 pass
 
     def _set_lang(self, lang: str):
-        self.lang = lang.lower()
+        self.lang = lang
 
     def _set_limit(self, new_limit: int) -> None:
-        print(1)
         self.limit = new_limit
 
-    def _parse_where_clause(self, where_clause: str):
-        tokens = where_clause.split()
-        for token in tokens:
-            if token not in (self.sql_comparison_operators, self.sql_operators_keywords):
-                if token not in self.fields:
-                    raise AttributeError(f'WHERE CLAUSE ERROR: There is no such field with name "{token}"')
-                # todo: generate fake data based on condition
+    def _parse_where_clause(self, where_clause: Union[str, List[Expression]]):
+        for condition in list(where_clause):
+            expr = Expression(condition)
+            if expr.field not in self.conditions_per_field.keys():
+                self.conditions_per_field[expr.field] = [expr]
+            else:
+                self.conditions_per_field[expr.field].extend([expr])
 
     def _parse_foreign_keys(self, foreign_keys: List[Dict[str, str]]):
         pass
 
 
 if __name__ == '__main__':
-    from example import SimpleModel
+    from example import SimpleModel, User
     from pprint import pprint
-    gen = FakeDataGenerator(SimpleModel)
-    pprint(gen.generate_fake_data())
+    # gen = FakeDataGenerator(SimpleModel)
+    # pprint(gen.generate_fake_data())
+
+    gen2 = FakeDataGenerator(User)
+    pprint(gen2.generate_fake_data())
