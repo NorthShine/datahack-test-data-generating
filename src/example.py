@@ -6,17 +6,12 @@ class SimpleModel:
     item_id: int
     name: str
 
-    __limit__ = 1
-
 
 @dataclass
 class User:
     user_id: int
     name: str
     age: int
-
-    __limit__ = 3
-    __where_clause__ = 'user_id >= 10 AND age < 22 AND age > 20'
 
 
 @dataclass
