@@ -60,6 +60,6 @@ class ExpressionParser:
                 field=tokens[0],
                 comparator=self.sql_comparison_operators.get(tokens[1]),
                 other=tokens[2],
-                sql_operator_after_expression=sql_operator.upper(),
+                sql_operator_after_expression=sql_operator,
             ),
         )

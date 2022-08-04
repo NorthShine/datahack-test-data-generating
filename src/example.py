@@ -16,7 +16,7 @@ class User:
     age: int
 
     __limit__ = 3
-    __where_clause__ = ['user_id >= 10', 'age < 22', 'age > 20']
+    __where_clause__ = 'user_id >= 10 AND age < 22 AND age > 20'
 
 
 @dataclass
