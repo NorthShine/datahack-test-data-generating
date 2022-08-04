@@ -8,7 +8,9 @@ class Expression:
     field: str
     comparator: typing.Callable
     other: str
-    sql_operator_after_expression: typing.Optional[str]
+    is_detailed_other_field: bool = False
+    other_detailed: typing.Optional[dict] = None
+    sql_operator_after_expression: typing.Optional[str] = None
 
 
 class ExpressionParser:
@@ -18,11 +20,13 @@ class ExpressionParser:
         '>=': operator.ge,
         '<=': operator.le,
         '=': operator.eq,
+        '!=': operator.ne,
     }
     sql_operators = ('AND', 'OR')
     expressions = []
 
-    def __init__(self, expr: str):
+    def __init__(self, expr: str, model_fields):
+        self.model_fields = model_fields
         self.original_expression = expr
         self.set_case()
         if not self.is_simple_expression(self.original_expression):
@@ -49,7 +53,7 @@ class ExpressionParser:
                 self.parse_expression(expression, sql_operator)
             else:
                 self.cut_expression(expression)
-        # wont work on this case: user_id = 5 AND (age = 5 OR (age > 5 AND age < 10))
+        # wont work in this case: user_id = 5 AND (age = 5 OR (age > 5 AND age < 10))
     
     def parse_expression(self, expression, sql_operator=None):
         expression = expression.replace('(', '')

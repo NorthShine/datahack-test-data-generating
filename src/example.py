@@ -16,14 +16,22 @@ class User:
 
 @dataclass
 class Book:
-    author_id: int
+    author: int
     title: str
 
-    __foreign_keys__ = [{'author_id': 'user.user_id'}]
+
+# user_gen = FakeDataGenerator(User, limit=5, where_clause='age > 20')
+# user_data = user_gen.generate_fake_data()
+# book_gen = FakeDataGenerator(Book, foreign_keys=[{
+#     'self_field': 'author_id',
+#     'other_field': 'user_id',
+#     'other_model': User,
+#     'other_data': user_data,
+# }], detailed_relations=True)
 
 
 """
-Expected output:
+Expected output for User dataclass:
 
 [
     {
@@ -41,5 +49,14 @@ Expected output:
         "name": "john doe 3"
         "age": 25,
     }
+]
+
+Expected output for Book dataclass:
+
+[
+    {
+        "author_id": "10",
+        "title": "random title",
+    },
 ]
 """

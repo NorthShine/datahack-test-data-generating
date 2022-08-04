@@ -10,8 +10,9 @@ from faker.providers import (
 
 
 class BaseHandler:
-    def __init__(self, lang, conditions_per_field):
+    def __init__(self, lang, conditions_per_field, data):
         self.lang = lang
+        self.data = data
         self.conditions_per_field = conditions_per_field
         self.fake = Faker(self.lang)
         self.fake.add_provider(address)
@@ -26,6 +27,10 @@ class BaseHandler:
             if field == field_name:
                 min_val, max_val = None, None
                 for condition in conditions:
+                    if condition.is_detailed_other_field:
+                        field_value = condition.other_detailed
+                        break
+
                     if condition.comparator is operator.eq:
                         return condition.other
                     elif condition.comparator is operator.ge:
@@ -52,7 +57,7 @@ class Handler(BaseHandler):
     def handle(self, item, field_name, counter):
         for handler_cls in BaseHandler.__subclasses__():
             if handler_cls is not self.__class__:
-                handler = handler_cls(self.lang, self.conditions_per_field)
+                handler = handler_cls(self.lang, self.conditions_per_field, self.data)
                 handler.handle(item, field_name, counter)
         if field_name not in item:
             item[field_name] = self._apply_conditions(field_name, self.fake.text())
@@ -86,7 +91,12 @@ class FakerProvidersHandler(BaseHandler):
 class IDHandler(BaseHandler):
     def handle(self, item, field_name, counter):
         if 'id' in field_name:
-            item[field_name] = self._apply_conditions(field_name, counter)
+            new_id = self._apply_conditions(field_name, counter)
+            if isinstance(new_id, int):
+                ids = [new_id]
+                for obj in self.data:
+                    ids.append(obj[field_name])
+                item[field_name] = max(ids) + 1
 
 
 class AgeHandler(BaseHandler):
@@ -96,3 +106,15 @@ class AgeHandler(BaseHandler):
                 field_name,
                 random.randint(1, 100),
             )
+
+
+class TitleHandler(BaseHandler):
+    def handle(self, item, field_name, counter):
+        if 'title' in field_name:
+            text = self._apply_conditions(field_name, self.fake.text())
+            new_text = []
+            for word in text.split():
+                new_text.append(word)
+                if '.' in word:
+                    break
+            item[field_name] = ' '.join(new_text)
