@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     gen2 = FakeDataGenerator(
         User,
-        where_clause='user_id >= 10 AND age < 22 AND age > 20',
-        limit=3,
+        where_clause='user_id >= 10 AND age <= 22 AND age > 20',
+        limit=10,
     )
     pprint(gen2.generate_fake_data())

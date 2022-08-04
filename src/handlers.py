@@ -24,21 +24,26 @@ class BaseHandler:
     def _apply_conditions(self, field_name, field_value):
         for field, conditions in self.conditions_per_field.items():
             if field == field_name:
+                min_val, max_val = None, None
                 for condition in conditions:
-                    min_val, max_val = None, None
-
                     if condition.comparator is operator.eq:
                         return condition.other
-                    elif condition.comparator in (operator.ge, operator.gt):
+                    elif condition.comparator is operator.ge:
                         min_val = int(condition.other)
-                    elif condition.comparator in (operator.le, operator.lt):
+                    elif condition.comparator is operator.gt:
+                        min_val = int(condition.other) + 1
+                    elif condition.comparator is operator.le:
                         max_val = int(condition.other)
+                    elif condition.comparator is operator.lt:
+                        max_val = int(condition.other) - 1
 
                     comparable_obj = int(condition.other) if condition.other.isdigit() else condition.other
                     while not condition.comparator(field_value, comparable_obj):
-                        if min_val is not None:
-                            field_value += min_val
-                        elif max_val is not None:
+                        if min_val is not None and max_val is not None:
+                            field_value = random.randint(min_val, max_val)
+                        elif min_val is not None and field_value < min_val:
+                            field_value += random.randint(1, int(min_val / 2))
+                        elif max_val is not None and field_value > max_val:
                             field_value -= max_val
         return field_value
 
