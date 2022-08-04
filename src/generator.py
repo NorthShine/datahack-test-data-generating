@@ -1,3 +1,4 @@
+import json
 import operator
 from typing import Any, Dict, Optional, List, get_type_hints
 
@@ -14,7 +15,6 @@ class FakeDataGenerator:
             limit=10,
             lang='en_US',
             detailed_relations=False,
-            as_json=False,
     ):
         self.model = model
         self.detailed_relations = detailed_relations
@@ -25,7 +25,7 @@ class FakeDataGenerator:
         self._parse_where_clause(where_clause)
         self._parse_foreign_keys(foreign_keys)
 
-    def generate_fake_data(self):
+    def generate_fake_data(self, as_json=False):
         data = []
         for counter in range(1, self.limit + 1):
             item = {}
@@ -33,6 +33,8 @@ class FakeDataGenerator:
                 handler = Handler(self.lang, self.conditions_per_field, data)
                 handler.handle(item, field_name, counter)
             data.append(item)
+        if as_json:
+            return json.dumps(data)
         return data
 
     def _parse_where_clause(self, where_clause: Optional[str]):
