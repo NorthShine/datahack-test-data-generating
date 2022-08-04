@@ -1,6 +1,6 @@
 from typing import Dict, Callable, List, Union, get_type_hints
 
-from expression import Expression
+from expression import Expression, ExpressionParser
 from handlers import Handler
 
 
@@ -46,11 +46,12 @@ class FakeDataGenerator:
 
     def _parse_where_clause(self, where_clause: Union[str, List[Expression]]):
         for condition in list(where_clause):
-            expr = Expression(condition)
-            if expr.field not in self.conditions_per_field.keys():
-                self.conditions_per_field[expr.field] = [expr]
-            else:
-                self.conditions_per_field[expr.field].extend([expr])
+            expr_parser = ExpressionParser(condition)
+            for expr in expr_parser.expressions:
+                if expr.field not in self.conditions_per_field.keys():
+                    self.conditions_per_field[expr.field] = [expr]
+                else:
+                    self.conditions_per_field[expr.field].extend([expr])
 
     def _parse_foreign_keys(self, foreign_keys: List[Dict[str, str]]):
         pass
