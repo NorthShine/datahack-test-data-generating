@@ -60,7 +60,7 @@ class MimesisPersonProviderHandler(BaseHandler):
                 person = Person(eval(f'Locale.{self.lang}'))
                 try:
                     item[field_name] = eval(f'person.{keyword}(mask=self.mask_per_field.get(field_name))')
-                except TypeError:
+                except (TypeError, AttributeError):
                     item[field_name] = eval(f'person.{keyword}()')
 
 
