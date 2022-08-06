@@ -37,13 +37,13 @@ class Book:
 
 
 # user_gen = FakeDataGenerator(User, limit=5, where_clause='age > 20')
-# user_data = user_gen.generate_fake_data()
+# user_data = user_gen.load()
 # book_gen = FakeDataGenerator(Book, foreign_keys=[{
 #     'self_field': 'author_id',
 #     'other_field': 'user_id',
 #     'other_model': User,
 #     'other_data': user_data,
-# }], detailed_relations=True)
+# }])
 
 
 """
