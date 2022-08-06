@@ -53,6 +53,7 @@ class FakeDataGenerator:
                 other_field = foreign_key['other_field']
                 other_data = foreign_key['other_data']
                 other_model = foreign_key['other_model']
+                unique = foreign_key.get('unique', False)
                 self._check_self_field_exists(self_field)
                 self._check_other_field_exists(other_field, other_data, other_model)
 
@@ -69,6 +70,7 @@ class FakeDataGenerator:
                                     other=data[other_field],
                                     is_detailed_other_field=self.detailed_relations,
                                     other_detailed=data,
+                                    unique=unique,
                                 ),
                             )
 
@@ -91,23 +93,24 @@ if __name__ == '__main__':
 
     user_gen = FakeDataGenerator(
         User,
-        where_clause='user_id >= 10 AND age <= 22 AND age > 20',
+        where_clause='user_id >= 10 AND user_id < 15',
         limit=3,
     )
     user_data = user_gen.generate_fake_data()
 
     book_gen = FakeDataGenerator(
         Book,
-        limit=1,
+        limit=10,
         foreign_keys=[
             {
                 'self_field': 'author',
                 'other_field': 'user_id',
                 'other_model': User,
                 'other_data': user_data,
+                'unique': False,
             },
         ],
-        detailed_relations=True,
+        detailed_relations=False,
     )
 
     pprint(user_data)

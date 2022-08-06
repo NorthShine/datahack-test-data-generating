@@ -8,6 +8,8 @@ from faker.providers import (
     phone_number,
 )
 
+from comparators import in_
+
 
 class BaseHandler:
     def __init__(self, lang, conditions_per_field, data):
@@ -27,12 +29,15 @@ class BaseHandler:
             if field == field_name:
                 min_val, max_val = None, None
                 for condition in conditions:
-                    if condition.is_detailed_other_field:
-                        field_value = condition.other_detailed
+                    if condition.is_detailed_other_field and not condition.unique:
+                        field_value = random.choice([cond.other_detailed for cond in conditions])
                         break
 
                     if condition.comparator is operator.eq:
                         return condition.other
+                    elif condition.comparator is in_:
+                        field_value = random.choice(condition.other)
+                        break
                     elif condition.comparator is operator.ge:
                         min_val = int(condition.other)
                     elif condition.comparator is operator.gt:
@@ -47,7 +52,7 @@ class BaseHandler:
                         if min_val is not None and max_val is not None:
                             field_value = random.randint(min_val, max_val)
                         elif min_val is not None and field_value < min_val:
-                            field_value += random.randint(1, int(min_val / 2))
+                            field_value = min_val + 1
                         elif max_val is not None and field_value > max_val:
                             field_value -= max_val
         return field_value

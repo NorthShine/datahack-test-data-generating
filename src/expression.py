@@ -2,8 +2,10 @@ import typing
 import operator
 from dataclasses import dataclass
 
+from comparators import in_, not_in
 
-@dataclass
+
+@dataclass(frozen=True, eq=True)
 class Expression:
     field: str
     comparator: typing.Callable
@@ -11,21 +13,24 @@ class Expression:
     is_detailed_other_field: bool = False
     other_detailed: typing.Optional[dict] = None
     sql_operator_after_expression: typing.Optional[str] = None
+    unique: bool = False
 
 
 class ExpressionParser:
-    sql_comparison_operators = {
-        '>': operator.gt,
-        '<': operator.lt,
-        '>=': operator.ge,
-        '<=': operator.le,
-        '=': operator.eq,
-        '!=': operator.ne,
-    }
-    sql_operators = ('AND', 'OR')
+    sql_operators = (' AND ', '  ')
     expressions = []
 
     def __init__(self, expr: str, model_fields):
+        self.sql_comparison_operators = {
+            '>': operator.gt,
+            '<': operator.lt,
+            '>=': operator.ge,
+            '<=': operator.le,
+            '=': operator.eq,
+            '!=': operator.ne,
+            ' IN ': in_,
+            ' NOT_IN ': not_in,
+        }
         self.model_fields = model_fields
         self.original_expression = expr
         self.set_case()
@@ -56,8 +61,6 @@ class ExpressionParser:
         # wont work in this case: user_id = 5 AND (age = 5 OR (age > 5 AND age < 10))
     
     def parse_expression(self, expression, sql_operator=None):
-        expression = expression.replace('(', '')
-        expression = expression.replace(')', '')
         tokens = expression.split()
         self.expressions.append(
             Expression(
