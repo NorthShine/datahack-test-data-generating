@@ -48,18 +48,22 @@ class FakeDataGenerator:
         if as_json:
             return json.dumps(data)
         self._save_to_json(json.dumps(data))
-        self._parse_where_clause(where_clause)
         self._handle_foreign_key_relations(data)
+        data = self._parse_where_clause(where_clause) or data
         return data
 
     def _save_to_json(self, data):
-        with open(self.json_filename, 'w+') as json_file:
+        with open(self.json_filename, 'w') as json_file:
             json_file.write(data)
 
     def _parse_where_clause(self, where_clause: Optional[str]):
+        data = []
         if where_clause is not None:
-            json_file = self.spark.read.json(self.json_filename)
-            json_file.where(where_clause).show()
+            df = self.spark.read.json(self.json_filename)
+            df = df.where(where_clause)
+            for item in df.toJSON().collect():
+                data.append(json.loads(item))
+        return data
 
     def _parse_foreign_keys(self, foreign_keys: Optional[List[Dict[str, Any]]]):
         if foreign_keys is not None:
