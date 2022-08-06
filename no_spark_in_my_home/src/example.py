@@ -25,6 +25,7 @@ user_gen = FakeDataGenerator(
                 datetime.date(year=2015, month=1, day=1),
             ],
         },
+        # config='config.json',
     )
 user_data = user_gen.load(where_clause='user_id = 10')
 pprint(user_data)

@@ -19,8 +19,10 @@ class FakeDataGenerator:
             foreign_keys=None,
             limit=10,
             lang='en_US',
+            config=None,
     ):
         self.model = model
+        self.config = config
         self.mask_per_field = mask_per_field
         self.range_per_field = range_per_field or {}
         self.fields = get_type_hints(model)
@@ -30,6 +32,9 @@ class FakeDataGenerator:
         self.foreign_keys = foreign_keys or {}
         self.spark = SparkSession.builder.appName('data-hack-lib').getOrCreate()
         self.json_filename = 'data.json'
+
+        if config is not None:
+            self._use_config()
 
     def load(self, as_json=False, where_clause=None):
         data = []
@@ -44,13 +49,19 @@ class FakeDataGenerator:
                 )
                 handler.handle(item, field_name, field_type, counter)
             data.append(item)
-
-        if as_json:
-            return json.dumps(data)
         self._save_to_json(json.dumps(data))
         self._handle_foreign_key_relations(data)
         data = self._parse_where_clause(where_clause) or data
+        if as_json:
+            return json.dumps(data)
         return data
+
+    def _use_config(self):
+        with open(self.config, 'r') as config:
+            json_config = json.loads(config.read())
+            self.limit = json_config.get('limit', self.limit)
+            self.range_per_field = json_config.get('range_per_field', self.range_per_field)
+            self.mask_per_field = json_config.get('mask_per_field', self.mask_per_field)
 
     def _save_to_json(self, data):
         with open(self.json_filename, 'w') as json_file:
@@ -114,45 +125,3 @@ class FakeDataGenerator:
     def _handle_foreign_key_relations(self, self_data):
         for key in self.foreign_keys:
             self._handle_single_foreign_key(key, self_data)
-
-
-if __name__ == '__main__':
-    from example import SimpleModel, User, Book
-    from pprint import pprint
-    import datetime
-    # simple_gen = FakeDataGenerator(SimpleModel, limit=10)
-    # pprint(simple_gen.load_dataclass())
-
-    user_gen = FakeDataGenerator(
-        User,
-        limit=10,
-        range_per_field={
-            'age': range(1, 5),
-            'user_id': range(10, 100),
-            # 'name': ['text', 'text 1', 'text2'],
-            'date_of_birth': [
-                datetime.date(year=2012, month=1, day=1),
-                datetime.date(year=2015, month=1, day=1),
-            ],
-        },
-    )
-    user_data = user_gen.load(where_clause='user_id >= 10 AND user_id < 15')
-    pprint(user_data)
-"""
-    book_gen = FakeDataGenerator(
-        Book,
-        limit=10,
-        foreign_keys=[
-            {
-                'self_field': 'author',
-                'other_field': 'user_id',
-                'other_model': User,
-                'other_data': user_data,
-                'unique': False,
-            },
-        ],
-    )
-
-    pprint(user_data)
-    pprint(book_gen.load_dataclass())
-"""
