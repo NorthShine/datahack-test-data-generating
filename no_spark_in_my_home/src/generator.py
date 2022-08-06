@@ -19,12 +19,10 @@ class FakeDataGenerator:
             foreign_keys=None,
             limit=10,
             lang='en_US',
-            detailed_relations=False,
     ):
         self.model = model
         self.mask_per_field = mask_per_field
         self.range_per_field = range_per_field or {}
-        self.detailed_relations = detailed_relations
         self.fields = get_type_hints(model)
         self.limit = limit
         self.lang = lang
@@ -151,7 +149,6 @@ if __name__ == '__main__':
                 'unique': False,
             },
         ],
-        detailed_relations=False,
     )
 
     pprint(user_data)
