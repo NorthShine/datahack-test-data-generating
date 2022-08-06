@@ -70,7 +70,9 @@ class FakeDataGenerator:
                 other_field = foreign_key['other_field']
                 other_data = foreign_key['other_data']
                 other_model = foreign_key['other_model']
-                self._check_self_field_exists(self_field, other_model)
+
+                self_field = f'{other_model.__name__}_{self_field}'
+                self._check_self_field_exists(self_field)
                 self._check_other_field_exists(other_field, other_data, other_model)
 
     @staticmethod
@@ -79,9 +81,9 @@ class FakeDataGenerator:
             if other_field not in item.keys():
                 raise AttributeError(f'There is not such field {other_field} in {other_model.__name__}')
 
-    def _check_self_field_exists(self, self_field, other_model):
-        other_model_name = other_model.__name__
-        self_field = f'{other_model_name}_{self_field}'
+    def _check_self_field_exists(self, self_field):
+        print(self_field)
+        print(self.fields.keys())
         if self_field not in self.fields.keys():
             raise AttributeError(f'There is not such field {self_field} in {self.model.__name__}')
 
