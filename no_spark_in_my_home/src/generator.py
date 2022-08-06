@@ -80,8 +80,6 @@ class FakeDataGenerator:
                 raise AttributeError(f'There is not such field {other_field} in {other_model.__name__}')
 
     def _check_self_field_exists(self, self_field):
-        print(self_field)
-        print(self.fields.keys())
         if self_field not in self.fields.keys():
             raise AttributeError(f'There is not such field {self_field} in {self.model.__name__}')
 

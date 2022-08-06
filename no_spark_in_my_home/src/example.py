@@ -43,7 +43,7 @@ class Book:
 #     'other_field': 'user_id',
 #     'other_model': User,
 #     'other_data': user_data,
-# }], detailed_relations=True)
+# }])
 
 
 """

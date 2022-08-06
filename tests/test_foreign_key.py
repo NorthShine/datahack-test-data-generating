@@ -1,29 +1,5 @@
 from collections import Counter
 
-import pytest
-from no_spark_in_my_home.src.generator import FakeDataGenerator
-
-
-@pytest.mark.skip
-def test_foreign_key_implemented(Author, Book):
-    user_data: FakeDataGenerator = FakeDataGenerator(Author, limit=10)
-    user_data = user_data.load()
-
-    book_data = FakeDataGenerator(
-        Book,
-        limit=10,
-        foreign_keys=[
-            {
-                'self_field': 'author_id',
-                'other_field': 'author_id',
-                'other_model': Author,
-                'other_data': user_data,
-                'allow_other_has_no_refs': True
-            }
-        ]
-    )
-    book_data = book_data.load()
-
 
 def test_at_least_two_books_point_at_author(book_data):
     book_fks = [row['Author_author_id'] for row in book_data]
