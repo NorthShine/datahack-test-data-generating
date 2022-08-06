@@ -26,7 +26,7 @@ user_gen = FakeDataGenerator(
             ],
         },
     )
-user_data = user_gen.load()
+user_data = user_gen.load(where_clause='user_id = 10')
 pprint(user_data)
 
 
