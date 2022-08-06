@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='no_spark_in_my_home',
-    version='0.1.3',
+    version='1.0.1',
     author=['scripthound, nomilkinmyhome'],
     install_requires=[
         'faker',
@@ -14,5 +14,5 @@ setup(
         'pandas',
     ],
     setup_requires=['wheel', 'mimesis', 'pyspark', 'pandas'],
-    packages=find_packages(include=['src', 'src.*'])
+    packages=find_packages()
 )

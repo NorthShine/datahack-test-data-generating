@@ -3,7 +3,7 @@ import datetime
 
 import pandas as pd
 
-from mimesis import Person, Address, Datetime
+from mimesis import Person, Address, Datetime, Text
 from mimesis.locales import Locale
 
 
@@ -41,7 +41,8 @@ class Handler(BaseHandler):
                 )
                 handler.handle(item, field_name, field_type, counter)
         if field_name not in item:
-            item[field_name] = self.fake.text()
+            text_generator = Text()
+            item[field_name] = text_generator.sentence()
 
 
 class MimesisPersonProviderHandler(BaseHandler):
@@ -138,7 +139,8 @@ class AgeHandler(BaseHandler):
 class TitleHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if 'title' in field_name:
-            text = self.fake.text()
+            text_gen = Text()
+            text = text_gen.sentence()
             new_text = []
             for word in text.split():
                 new_text.append(word)
