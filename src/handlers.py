@@ -1,5 +1,6 @@
-import operator
 import random
+from dateutil.rrule import rrule
+from datetime import datetime
 
 from faker import Faker
 from faker.providers import (
@@ -8,68 +9,52 @@ from faker.providers import (
     phone_number,
 )
 
-from comparators import in_
-
 
 class BaseHandler:
-    def __init__(self, lang, conditions_per_field, data):
+    def __init__(self, lang, mask_per_field, range_per_field, data):
         self.lang = lang
         self.data = data
-        self.conditions_per_field = conditions_per_field
+        self.range_per_field = range_per_field
+        self.mask_per_field = mask_per_field
         self.fake = Faker(self.lang)
         self.fake.add_provider(address)
         self.fake.add_provider(date_time)
         self.fake.add_provider(phone_number)
 
-    def handle(self, item, field_name, counter):
+    def handle(self, item, field_name, field_type, counter):
         raise NotImplemented
 
-    def _apply_conditions(self, field_name, field_value):
-        for field, conditions in self.conditions_per_field.items():
-            if field == field_name:
-                min_val, max_val = None, None
-                for condition in conditions:
-                    if condition.is_detailed_other_field and not condition.unique:
-                        field_value = random.choice([cond.other_detailed for cond in conditions])
-                        break
-
-                    if condition.comparator is operator.eq:
-                        return condition.other
-                    elif condition.comparator is in_:
-                        field_value = random.choice(condition.other)
-                        break
-                    elif condition.comparator is operator.ge:
-                        min_val = int(condition.other)
-                    elif condition.comparator is operator.gt:
-                        min_val = int(condition.other) + 1
-                    elif condition.comparator is operator.le:
-                        max_val = int(condition.other)
-                    elif condition.comparator is operator.lt:
-                        max_val = int(condition.other) - 1
-
-                    comparable_obj = int(condition.other) if condition.other.isdigit() else condition.other
-                    while not condition.comparator(field_value, comparable_obj):
-                        if min_val is not None and max_val is not None:
-                            field_value = random.randint(min_val, max_val)
-                        elif min_val is not None and field_value < min_val:
-                            field_value = min_val + 1
-                        elif max_val is not None and field_value > max_val:
-                            field_value -= max_val
-        return field_value
+    def _process_range(self, item, field_name, default_item_range=range(0, 1000)):
+        if field_name in self.range_per_field.keys():
+            item_range = self.range_per_field[field_name]
+            item[field_name] = random.randint(item_range[0], item_range[-1])
+        else:
+            item[field_name] = random.randint(default_item_range[0], default_item_range[-1])
 
 
 class Handler(BaseHandler):
-    def handle(self, item, field_name, counter):
+    def handle(self, item, field_name, field_type, counter):
         for handler_cls in BaseHandler.__subclasses__():
             if handler_cls is not self.__class__:
-                handler = handler_cls(self.lang, self.conditions_per_field, self.data)
-                handler.handle(item, field_name, counter)
+                handler = handler_cls(
+                    self.lang,
+                    self.mask_per_field,
+                    self.range_per_field,
+                    self.data,
+                )
+                handler.handle(item, field_name, field_type, counter)
         if field_name not in item:
-            item[field_name] = self._apply_conditions(field_name, self.fake.text())
+            item[field_name] = self.fake.text()
+
+
+class IntHandler(BaseHandler):
+    def handle(self, item, field_name, field_type, counter):
+        if field_type is int:
+            self._process_range(item, field_name)
 
 
 class FakerProvidersHandler(BaseHandler):
-    def handle(self, item, field_name, counter):
+    def handle(self, item, field_name, field_type, counter):
         keywords = (
             'name',
             'city',
@@ -90,33 +75,34 @@ class FakerProvidersHandler(BaseHandler):
         )
         for keyword in keywords:
             if keyword in field_name:
-                item[field_name] = eval(f'self._apply_conditions("{field_name}", self.fake.{keyword}())')
+                item[field_name] = eval(f'self.fake.{keyword}()')
+                # item[field_name] = eval(f'self._apply_conditions("{field_name}", self.fake.{keyword}())')
 
 
 class IDHandler(BaseHandler):
-    def handle(self, item, field_name, counter):
+    def handle(self, item, field_name, field_type, counter):
         if 'id' in field_name:
-            new_id = self._apply_conditions(field_name, counter)
-            if isinstance(new_id, int):
-                ids = [new_id]
+            if self.data:
+                ids = []
                 for obj in self.data:
                     ids.append(obj[field_name])
                 item[field_name] = max(ids) + 1
+            else:
+                if field_name in self.range_per_field.keys():
+                    counter = self.range_per_field[field_name][0]
+                item[field_name] = counter
 
 
 class AgeHandler(BaseHandler):
-    def handle(self, item, field_name, counter):
+    def handle(self, item, field_name, field_type, counter):
         if 'age' in field_name:
-            item[field_name] = self._apply_conditions(
-                field_name,
-                random.randint(1, 100),
-            )
+            self._process_range(item, field_name, (1, 100))
 
 
 class TitleHandler(BaseHandler):
-    def handle(self, item, field_name, counter):
+    def handle(self, item, field_name, field_type, counter):
         if 'title' in field_name:
-            text = self._apply_conditions(field_name, self.fake.text())
+            text = self.fake.text()
             new_text = []
             for word in text.split():
                 new_text.append(word)
