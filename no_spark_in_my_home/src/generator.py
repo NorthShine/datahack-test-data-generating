@@ -1,9 +1,13 @@
 import json
+
+from random import choice, randint
+from collections import deque
+
 from typing import Any, Dict, Optional, List, get_type_hints
 
 from pyspark.sql import SparkSession
 
-from handlers import Handler
+from no_spark_in_my_home.src.handlers import Handler
 
 
 class FakeDataGenerator:
@@ -15,16 +19,15 @@ class FakeDataGenerator:
             foreign_keys=None,
             limit=10,
             lang='en_US',
-            detailed_relations=False,
     ):
         self.model = model
         self.mask_per_field = mask_per_field
-        self.range_per_field = range_per_field
-        self.detailed_relations = detailed_relations
+        self.range_per_field = range_per_field or {}
         self.fields = get_type_hints(model)
         self.limit = limit
         self.lang = lang
         self._parse_foreign_keys(foreign_keys)
+        self.foreign_keys = foreign_keys or {}
         self.spark = SparkSession.builder.appName('data-hack-lib').getOrCreate()
         self.json_filename = 'data.json'
 
@@ -41,9 +44,11 @@ class FakeDataGenerator:
                 )
                 handler.handle(item, field_name, field_type, counter)
             data.append(item)
+
         if as_json:
             return json.dumps(data)
         self._save_to_json(json.dumps(data))
+        self._handle_foreign_key_relations(data)
         data = self._parse_where_clause(where_clause) or data
         return data
 
@@ -67,18 +72,48 @@ class FakeDataGenerator:
                 other_field = foreign_key['other_field']
                 other_data = foreign_key['other_data']
                 other_model = foreign_key['other_model']
+
+                self_field = f'{other_model.__name__}_{self_field}'
                 self._check_self_field_exists(self_field)
                 self._check_other_field_exists(other_field, other_data, other_model)
-
-    def _check_self_field_exists(self, self_field):
-        if self_field not in self.fields.keys():
-            raise AttributeError(f'There is not such field {self_field} in {self.model.__name__}')
 
     @staticmethod
     def _check_other_field_exists(other_field, other_data, other_model):
         for item in other_data:
             if other_field not in item.keys():
                 raise AttributeError(f'There is not such field {other_field} in {other_model.__name__}')
+
+    def _check_self_field_exists(self, self_field):
+        if self_field not in self.fields.keys():
+            raise AttributeError(f'There is not such field {self_field} in {self.model.__name__}')
+
+    def _handle_single_foreign_key(self, foreign_key_desc: dict, self_data):
+        other_model_field_values = []
+        other_field = foreign_key_desc['other_field']
+        other_data = foreign_key_desc['other_data']
+        other_model = foreign_key_desc['other_model']
+        other_model = other_model.__name__
+        allow_other_has_no_refs = foreign_key_desc.get('allow_other_has_no_refs')
+
+        for row in other_data:
+            other_key_value = row[other_field]
+            other_model_field_values.append(other_key_value)
+        
+        if allow_other_has_no_refs:
+            for row in self_data:
+                key_value = choice(other_model_field_values)
+                row[f'{other_model}_{other_field}'] = key_value
+        else:
+            other_model_field_values = deque(other_model_field_values)
+            shift = randint(1, 100)
+            other_model_field_values.rotate(shift)
+            for idx, row in enumerate(self_data):
+                key_value = other_model_field_values[idx]
+                row[f'{other_model}_{other_field}'] = key_value
+
+    def _handle_foreign_key_relations(self, self_data):
+        for key in self.foreign_keys:
+            self._handle_single_foreign_key(key, self_data)
 
 
 if __name__ == '__main__':
@@ -116,7 +151,6 @@ if __name__ == '__main__':
                 'unique': False,
             },
         ],
-        detailed_relations=False,
     )
 
     pprint(user_data)
