@@ -19,8 +19,8 @@ classifiers = [
 keywords = ["fake", "data", "generator"]
 dependencies = [
     "pyspark",
-    "faker",
     "pandas",
+    "mimesis",
 ]
 requires-python = ">=3.7"
 

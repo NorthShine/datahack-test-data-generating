@@ -3,24 +3,16 @@ import datetime
 
 import pandas as pd
 
-from faker import Faker
-from faker.providers import (
-    address,
-    date_time,
-    phone_number,
-)
+from mimesis import Person, Address, Datetime
+from mimesis.locales import Locale
 
 
 class BaseHandler:
     def __init__(self, lang, mask_per_field, range_per_field, data):
-        self.lang = lang
+        self.lang = lang.upper()
         self.data = data
         self.range_per_field = range_per_field
         self.mask_per_field = mask_per_field
-        self.fake = Faker(self.lang)
-        self.fake.add_provider(address)
-        self.fake.add_provider(date_time)
-        self.fake.add_provider(phone_number)
 
     def handle(self, item, field_name, field_type, counter):
         raise NotImplemented
@@ -52,10 +44,28 @@ class Handler(BaseHandler):
             item[field_name] = self.fake.text()
 
 
-class FakerProvidersHandler(BaseHandler):
+class MimesisPersonProviderHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         keywords = (
-            'name',
+            'full_name',
+            'last_name',
+            'first_name',
+            'username',
+            'email',
+            'telephone',
+        )
+        for keyword in keywords:
+            if keyword in field_name:
+                person = Person(eval(f'Locale.{self.lang}'))
+                try:
+                    item[field_name] = eval(f'person.{keyword}(mask=self.mask_per_field.get(field_name))')
+                except TypeError:
+                    item[field_name] = eval(f'person.{keyword}()')
+
+
+class MimesisAddressProviderHandler(BaseHandler):
+    def handle(self, item, field_name, field_type, counter):
+        keywords = (
             'city',
             'address',
             'country',
@@ -63,19 +73,28 @@ class FakerProvidersHandler(BaseHandler):
             'building_number',
             'street_address',
             'street_name',
-            'century',
-            'date',
-            'time',
-            'date_of_birth',
-            'date_time',
-            'month',
-            'timezone',
-            'phone_number',
         )
         for keyword in keywords:
             if keyword in field_name:
-                item[field_name] = eval(f'self.fake.{keyword}()')
-                # item[field_name] = eval(f'self._apply_conditions("{field_name}", self.fake.{keyword}())')
+                address = Address(eval(f'Locale.{self.lang}'))
+                item[field_name] = eval(f'address.{keyword}()')
+
+
+class MimesisDatetimeProviderHandler(BaseHandler):
+    def handle(self, item, field_name, field_type, counter):
+        keywords = (
+            'century',
+            'date',
+            'time',
+            'datetime',
+            'month',
+            'timezone',
+            'timestamp',
+        )
+        for keyword in keywords:
+            if keyword in field_name:
+                date_time = Datetime(eval(f'Locale.{self.lang}'))
+                item[field_name] = eval(f'date_time.{keyword}()')
 
 
 class IntHandler(BaseHandler):

@@ -13,6 +13,6 @@ setup(
         'pyspark',
         'pandas',
     ],
-    setup_requires=['wheel', 'faker', 'pyspark', 'pandas'],
+    setup_requires=['wheel', 'mimesis', 'pyspark', 'pandas'],
     packages=find_packages(include=['src', 'src.*'])
 )

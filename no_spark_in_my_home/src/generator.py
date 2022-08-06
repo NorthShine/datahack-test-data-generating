@@ -18,7 +18,7 @@ class FakeDataGenerator:
             range_per_field=None,
             foreign_keys=None,
             limit=10,
-            lang='en_US',
+            lang='ru',
             config=None,
     ):
         self.model = model

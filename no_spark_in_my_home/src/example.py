@@ -8,18 +8,23 @@ from generator import FakeDataGenerator
 @dataclass
 class User:
     user_id: int
-    name: str
+    full_name: str
     age: int
-    date_of_birth: datetime.datetime
+    username: str
+    email: str
+    telephone: str
 
 
 user_gen = FakeDataGenerator(
         User,
         limit=5,
+        mask_per_field={
+            'username': 'C_C_d',
+        },
         range_per_field={
             'age': range(10, 20),
             'user_id': range(10, 100),
-            # 'name': ['text', 'text 1', 'text2'],
+            # 'full_name': ['text', 'text 1', 'text2'],
             'date_of_birth': [
                 datetime.date(year=2012, month=1, day=1),
                 datetime.date(year=2015, month=1, day=1),
