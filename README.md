@@ -22,3 +22,9 @@ In case you want to build your own package version you should follow
 this [guide](https://python-packaging-tutorial.readthedocs.io/en/latest/setup_py.html).
 
 And then just build a wheel and install it.
+
+# Making and publishing a new release
+
+1. Update release version in pyproject.toml and setup.py
+2. Build package with `python -m build`
+3. Publish package with `twine upload dist/*`
