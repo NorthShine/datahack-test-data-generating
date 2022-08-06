@@ -1,11 +1,8 @@
-from datetime import datetime
+import datetime
 from dataclasses import dataclass
+from pprint import pprint
 
-
-@dataclass
-class SimpleModel:
-    item_id: int
-    name: str
+from generator import FakeDataGenerator
 
 
 @dataclass
@@ -13,7 +10,24 @@ class User:
     user_id: int
     name: str
     age: int
-    date_of_birth: datetime
+    date_of_birth: datetime.datetime
+
+
+user_gen = FakeDataGenerator(
+        User,
+        limit=5,
+        range_per_field={
+            'age': range(10, 20),
+            'user_id': range(10, 100),
+            # 'name': ['text', 'text 1', 'text2'],
+            'date_of_birth': [
+                datetime.date(year=2012, month=1, day=1),
+                datetime.date(year=2015, month=1, day=1),
+            ],
+        },
+    )
+user_data = user_gen.load(where_clause='user_id >= 10 AND user_id < 15')
+pprint(user_data)
 
 
 @dataclass
