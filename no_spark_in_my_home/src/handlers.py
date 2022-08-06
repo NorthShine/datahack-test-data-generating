@@ -1,6 +1,7 @@
 import random
-from dateutil.rrule import rrule
-from datetime import datetime
+import datetime
+
+import pandas as pd
 
 from faker import Faker
 from faker.providers import (
@@ -24,12 +25,16 @@ class BaseHandler:
     def handle(self, item, field_name, field_type, counter):
         raise NotImplemented
 
-    def _process_range(self, item, field_name, default_item_range=range(0, 1000)):
+    def _process_int_range(self, item, field_name, default_item_range=range(0, 1000)):
         if field_name in self.range_per_field.keys():
             item_range = self.range_per_field[field_name]
             item[field_name] = random.randint(item_range[0], item_range[-1])
         else:
             item[field_name] = random.randint(default_item_range[0], default_item_range[-1])
+
+    def _process_text_range(self, item, field_name):
+        if field_name in self.range_per_field.keys():
+            item[field_name] = random.choice(self.range_per_field[field_name])
 
 
 class Handler(BaseHandler):
@@ -45,12 +50,6 @@ class Handler(BaseHandler):
                 handler.handle(item, field_name, field_type, counter)
         if field_name not in item:
             item[field_name] = self.fake.text()
-
-
-class IntHandler(BaseHandler):
-    def handle(self, item, field_name, field_type, counter):
-        if field_type is int:
-            self._process_range(item, field_name)
 
 
 class FakerProvidersHandler(BaseHandler):
@@ -79,6 +78,24 @@ class FakerProvidersHandler(BaseHandler):
                 # item[field_name] = eval(f'self._apply_conditions("{field_name}", self.fake.{keyword}())')
 
 
+class IntHandler(BaseHandler):
+    def handle(self, item, field_name, field_type, counter):
+        if field_type is int:
+            self._process_int_range(item, field_name)
+
+
+class DateTimeHandler(BaseHandler):
+    def handle(self, item, field_name, field_type, counter):
+        if field_type in (datetime.datetime, datetime.date):
+            if field_name in self.range_per_field.keys():
+                start_date = self.range_per_field[field_name][0]
+                end_date = self.range_per_field[field_name][-1]
+                item[field_name] = random.choice(pd.date_range(start_date, end_date).tolist())
+
+            if field_name in item:
+                item[field_name] = item[field_name].strftime('%d/%m/%Y, %H:%M:%S')
+
+
 class IDHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if 'id' in field_name:
@@ -96,7 +113,7 @@ class IDHandler(BaseHandler):
 class AgeHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if 'age' in field_name:
-            self._process_range(item, field_name, (1, 100))
+            self._process_int_range(item, field_name, (1, 100))
 
 
 class TitleHandler(BaseHandler):
@@ -109,3 +126,9 @@ class TitleHandler(BaseHandler):
                 if '.' in word:
                     break
             item[field_name] = ' '.join(new_text)
+
+
+class TextHandler(BaseHandler):
+    def handle(self, item, field_name, field_type, counter):
+        if field_type is str and field_name in self.range_per_field.keys():
+            self._process_text_range(item, field_name)

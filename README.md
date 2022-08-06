@@ -6,7 +6,7 @@ Data schema is defined using dataclasses.
 # Installation
 
 `
-python -m pip install dist/no_spark_in_my_home-0.1.0-py2.py3-none-any.whl
+python -m pip install no_spark_in_my_home
 `
 
 # Usage

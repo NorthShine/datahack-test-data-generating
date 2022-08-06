@@ -6,12 +6,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='no_spark_in_my_home',
-    version='0.1.2',
+    version='0.1.3',
     author=['scripthound, nomilkinmyhome'],
     install_requires=[
         'faker',
-        'pyspark'
+        'pyspark',
+        'pandas',
     ],
-    setup_requires=['wheel', 'faker', 'pyspark'],
+    setup_requires=['wheel', 'faker', 'pyspark', 'pandas'],
     packages=find_packages(include=['src', 'src.*'])
 )

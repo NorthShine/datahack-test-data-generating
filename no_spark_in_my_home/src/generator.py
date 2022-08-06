@@ -1,6 +1,8 @@
 import json
+
 from random import choice, randint
 from collections import deque
+
 from typing import Any, Dict, Optional, List, get_type_hints
 
 from pyspark.sql import SparkSession
@@ -53,7 +55,7 @@ class FakeDataGenerator:
         return data
 
     def _save_to_json(self, data):
-        with open(self.json_filename, 'a+') as json_file:
+        with open(self.json_filename, 'w+') as json_file:
             json_file.write(data)
 
     def _parse_where_clause(self, where_clause: Optional[str]):
@@ -115,13 +117,22 @@ class FakeDataGenerator:
 if __name__ == '__main__':
     from example import SimpleModel, User, Book
     from pprint import pprint
+    import datetime
     # simple_gen = FakeDataGenerator(SimpleModel, limit=10)
     # pprint(simple_gen.load_dataclass())
 
     user_gen = FakeDataGenerator(
         User,
         limit=10,
-        range_per_field={'age': range(1, 5), 'user_id': range(10, 100)},
+        range_per_field={
+            'age': range(1, 5),
+            'user_id': range(10, 100),
+            # 'name': ['text', 'text 1', 'text2'],
+            'date_of_birth': [
+                datetime.date(year=2012, month=1, day=1),
+                datetime.date(year=2015, month=1, day=1),
+            ],
+        },
     )
     user_data = user_gen.load(where_clause='user_id >= 10 AND user_id < 15')
     pprint(user_data)
