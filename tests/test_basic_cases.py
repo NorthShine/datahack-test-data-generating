@@ -62,6 +62,7 @@ def test_mask(ManyColumnsData):
         ManyColumnsData,
         mask_per_field={
             'text': '1#2A',
+            'my_int': '1',
         },
     )
     items = gen.load(as_dicts=True)
@@ -69,4 +70,4 @@ def test_mask(ManyColumnsData):
         assert item['text'][0] == '1'
         assert item['text'][2] == '2'
         assert item['text'][3] == 'A'
-
+        assert str(item['my_int'])[0] == '1'

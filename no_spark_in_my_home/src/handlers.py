@@ -51,11 +51,15 @@ class BaseHandler:
                         'symbol': char,
                     })
             for fixed_symbol in fixed_symbols_ids:
-                new_string = list(item[field_name])
-                for char_id, _ in enumerate(item[field_name]):
+                original_type = type(item[field_name])
+                new_string = list(str(item[field_name]))
+                for char_id, _ in enumerate(str(item[field_name])):
                     if char_id == fixed_symbol['id']:
                         new_string[char_id] = fixed_symbol['symbol']
-                item[field_name] = ''.join(new_string)
+                new_string = ''.join(new_string)
+                if original_type is not str:
+                    new_string = original_type(new_string)
+                item[field_name] = new_string
 
 
 class Handler(BaseHandler):
@@ -148,6 +152,7 @@ class IntHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if field_type is int:
             self._process_int_range(item, field_name)
+            self._process_mask(item, field_name)
 
 
 class DateTimeHandler(BaseHandler):
@@ -180,6 +185,7 @@ class AgeHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if 'age' in field_name:
             self._process_int_range(item, field_name, (1, 100))
+            self._process_mask(item, field_name)
 
 
 class TitleHandler(BaseHandler):
