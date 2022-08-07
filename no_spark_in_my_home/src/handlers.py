@@ -3,7 +3,7 @@ import datetime
 
 import pandas as pd
 
-from mimesis import Person, Address, Datetime
+from mimesis import Person, Address, Datetime, Text
 from mimesis.locales import Locale
 
 
@@ -12,7 +12,7 @@ class BaseHandler:
         self.lang = lang.upper()
         self.data = data
         self.range_per_field = range_per_field
-        self.mask_per_field = mask_per_field
+        self.mask_per_field = mask_per_field or {}
 
     def handle(self, item, field_name, field_type, counter):
         raise NotImplemented
@@ -91,10 +91,20 @@ class MimesisDatetimeProviderHandler(BaseHandler):
             'timezone',
             'timestamp',
         )
-        for keyword in keywords:
+        datetime_synonyms = (
+            'join_date',
+            'created',
+            'updated',
+            'date_of_birth',
+            'joined',
+        )
+        for keyword in (*keywords, *datetime_synonyms):
             if keyword in field_name:
                 date_time = Datetime(eval(f'Locale.{self.lang}'))
-                item[field_name] = eval(f'date_time.{keyword}()')
+                if keyword in datetime_synonyms:
+                    item[field_name] = date_time.datetime()
+                else:
+                    item[field_name] = eval(f'date_time.{keyword}()')
 
 
 class IntHandler(BaseHandler):
@@ -138,7 +148,7 @@ class AgeHandler(BaseHandler):
 class TitleHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if 'title' in field_name:
-            text = self.fake.text()
+            text = Text(eval(f'Locale.{self.lang}')).text(quantity=1)
             new_text = []
             for word in text.split():
                 new_text.append(word)
