@@ -68,7 +68,6 @@ class FakeDataGenerator:
             for item in df.toJSON().collect():
                 data.append(json.loads(item))
             return data
-        df.show()
         return df
 
     def _use_config(self):
