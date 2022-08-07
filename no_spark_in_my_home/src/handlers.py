@@ -8,11 +8,12 @@ from mimesis.locales import Locale
 
 
 class BaseHandler:
-    def __init__(self, lang, mask_per_field, range_per_field, data):
+    def __init__(self, lang, mask_per_field, range_per_field, maxlength_per_field, data):
         self.lang = lang.upper()
         self.data = data
         self.range_per_field = range_per_field
         self.mask_per_field = mask_per_field or {}
+        self.maxlength_per_field = maxlength_per_field
 
     def handle(self, item, field_name, field_type, counter):
         raise NotImplemented
@@ -28,6 +29,17 @@ class BaseHandler:
         if field_name in self.range_per_field.keys():
             item[field_name] = random.choice(self.range_per_field[field_name])
 
+    def _process_maxlength(self, item, field_name):
+        for field in self.maxlength_per_field:
+            if field_name == field['field_name']:
+                maxlength = field['maxlength']
+                if field['fixed']:
+                    if len(item[field_name]) < maxlength:
+                        shift = maxlength - len(item[field_name])
+                        item[field_name] += 'A' * shift
+                if len(item[field_name]) > maxlength:
+                    item[field_name] = item[field_name][:maxlength]
+
 
 class Handler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
@@ -37,12 +49,14 @@ class Handler(BaseHandler):
                     self.lang,
                     self.mask_per_field,
                     self.range_per_field,
+                    self.maxlength_per_field,
                     self.data,
                 )
                 handler.handle(item, field_name, field_type, counter)
         if field_name not in item:
-            text_generator = Text()
+            text_generator = Text(eval(f'Locale.{self.lang}'))
             item[field_name] = text_generator.sentence()
+            self._process_maxlength(item, field_name)
 
 
 class MimesisPersonProviderHandler(BaseHandler):
@@ -62,6 +76,7 @@ class MimesisPersonProviderHandler(BaseHandler):
                     item[field_name] = eval(f'person.{keyword}(mask=self.mask_per_field.get(field_name))')
                 except (TypeError, AttributeError):
                     item[field_name] = eval(f'person.{keyword}()')
+                self._process_maxlength(item, field_name)
 
 
 class MimesisAddressProviderHandler(BaseHandler):
@@ -79,6 +94,7 @@ class MimesisAddressProviderHandler(BaseHandler):
             if keyword in field_name:
                 address = Address(eval(f'Locale.{self.lang}'))
                 item[field_name] = eval(f'address.{keyword}()')
+                self._process_maxlength(item, field_name)
 
 
 class MimesisDatetimeProviderHandler(BaseHandler):
@@ -156,9 +172,11 @@ class TitleHandler(BaseHandler):
                 if '.' in word:
                     break
             item[field_name] = ' '.join(new_text)
+            self._process_maxlength(item, field_name)
 
 
 class TextHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if field_type is str and field_name in self.range_per_field.keys():
             self._process_text_range(item, field_name)
+            self._process_maxlength(item, field_name)

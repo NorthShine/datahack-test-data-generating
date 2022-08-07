@@ -16,6 +16,7 @@ class FakeDataGenerator:
             model,
             mask_per_field=None,
             range_per_field=None,
+            maxlength_per_field=None,
             foreign_keys=None,
             limit=10,
             lang='en',
@@ -25,6 +26,7 @@ class FakeDataGenerator:
         self.config = config
         self.mask_per_field = mask_per_field
         self.range_per_field = range_per_field or {}
+        self.maxlength_per_field = maxlength_per_field
         self.fields = get_type_hints(model)
         self.limit = limit
         self.lang = lang
@@ -50,6 +52,7 @@ class FakeDataGenerator:
                     self.lang,
                     self.mask_per_field,
                     self.range_per_field,
+                    self.maxlength_per_field,
                     data,
                 )
                 handler.handle(item, field_name, field_type, counter)
@@ -74,6 +77,7 @@ class FakeDataGenerator:
             self.limit = json_config.get('limit', self.limit)
             self.range_per_field = json_config.get('range_per_field', self.range_per_field)
             self.mask_per_field = json_config.get('mask_per_field', self.mask_per_field)
+            self.maxlength_per_field = json_config.get('maxlength_per_field', self.maxlength_per_field)
 
     def _save_to_json(self, data):
         with open(self.json_filename, 'w') as json_file:

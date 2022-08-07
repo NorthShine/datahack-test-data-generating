@@ -23,3 +23,35 @@ def ManyColumnsData():
 def test_no_exception_during_basic_generating(ManyColumnsData):
     generator = FakeDataGenerator(ManyColumnsData)
     generator.load()
+
+
+def test_fixed_maxlength_per_field(ManyColumnsData):
+    gen = FakeDataGenerator(
+        ManyColumnsData,
+        maxlength_per_field=[
+            {
+                'field_name': 'text',
+                'fixed': True,
+                'maxlength': 10,
+            },
+        ],
+    )
+    items = gen.load(as_dicts=True)
+    for item in items:
+        assert len(item['text']) == 10
+
+
+def test_non_fixed_maxlength_per_field(ManyColumnsData):
+    gen = FakeDataGenerator(
+        ManyColumnsData,
+        maxlength_per_field=[
+            {
+                'field_name': 'text',
+                'fixed': False,
+                'maxlength': 70,
+            },
+        ],
+    )
+    items = gen.load(as_dicts=True)
+    for item in items:
+        assert len(item['text']) <= 70
