@@ -13,7 +13,7 @@ class BaseHandler:
         self.data = data
         self.range_per_field = range_per_field
         self.mask_per_field = mask_per_field or {}
-        self.maxlength_per_field = maxlength_per_field
+        self.maxlength_per_field = maxlength_per_field or {}
 
     def handle(self, item, field_name, field_type, counter):
         raise NotImplemented

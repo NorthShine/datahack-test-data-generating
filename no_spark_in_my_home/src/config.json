@@ -1,9 +1,11 @@
 {
-  "limit": 10,
-  "range_per_field": {
-    "user_id": [20, 30]
-  },
-  "mask_per_field": {
-    "username": "CdC"
+  "user": {
+    "limit": 10,
+    "range_per_field": {
+      "user_id": [20, 30]
+    },
+    "mask_per_field": {
+      "username": "CdC"
+    }
   }
 }

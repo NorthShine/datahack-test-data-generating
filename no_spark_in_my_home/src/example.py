@@ -29,9 +29,10 @@ user_gen = FakeDataGenerator(
         config='config.json',
     )
 # user_data = user_gen.load(where_clause='age > 15')
-# user_data = user_gen.load()
+user_data = user_gen.load()
 
 
+"""
 @dataclass
 class Book:
     book_id: int
@@ -46,3 +47,4 @@ book_gen = FakeDataGenerator(Book, limit=10, foreign_keys=[{
     'other_data': user_gen.load(as_dicts=True),
 }])
 book_gen.load()
+"""

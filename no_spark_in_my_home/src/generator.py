@@ -74,10 +74,12 @@ class FakeDataGenerator:
     def _use_config(self):
         with open(self.config, 'r') as config:
             json_config = json.loads(config.read())
-            self.limit = json_config.get('limit', self.limit)
-            self.range_per_field = json_config.get('range_per_field', self.range_per_field)
-            self.mask_per_field = json_config.get('mask_per_field', self.mask_per_field)
-            self.maxlength_per_field = json_config.get('maxlength_per_field', self.maxlength_per_field)
+            for model_name, model_values in json_config.items():
+                if model_name.lower() == self.model.__name__.lower():
+                    self.limit = model_values.get('limit', self.limit)
+                    self.range_per_field = model_values.get('range_per_field', self.range_per_field)
+                    self.mask_per_field = model_values.get('mask_per_field', self.mask_per_field)
+                    self.maxlength_per_field = model_values.get('maxlength_per_field', self.maxlength_per_field)
 
     def _save_to_json(self, data):
         with open(self.json_filename, 'w') as json_file:
