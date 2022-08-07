@@ -190,7 +190,7 @@ class IntHandler(BaseHandler):
 
 class DateTimeHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
-        if field_type in (datetime.datetime, datetime.date):
+        if field_type in (datetime.datetime, datetime.date, 'datetime', 'date'):
             if field_name in self.range_per_field.keys():
                 item_range = self.range_per_field[field_name]['range']
                 item_frequency_distribution = self.range_per_field[field_name].get('frequency_distribution')

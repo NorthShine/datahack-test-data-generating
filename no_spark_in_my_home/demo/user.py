@@ -32,7 +32,6 @@ user_gen = FakeDataGenerator(
             'frequency_distribution': None,
         },
     },
-    # config='config.json',
 )
 
 if __name__ == '__main__':
