@@ -8,26 +8,57 @@ from mimesis.locales import Locale
 
 
 class BaseHandler:
-    def __init__(self, lang, mask_per_field, range_per_field, maxlength_per_field, data):
+    def __init__(
+            self,
+            lang,
+            mask_per_field,
+            range_per_field,
+            maxlength_per_field,
+            data,
+            limit,
+    ):
         self.lang = lang.upper()
+        self.limit = limit
         self.data = data
         self.range_per_field = range_per_field
         self.mask_per_field = mask_per_field or {}
         self.maxlength_per_field = maxlength_per_field or {}
 
+        self.choices_per_field = {}
+
     def handle(self, item, field_name, field_type, counter):
         raise NotImplemented
 
+    def _set_choices_per_field(self, field_name, item_range, item_frequency_distribution):
+        self.choices_per_field[field_name] = random.choices(
+            population=item_range,
+            weights=item_frequency_distribution,
+            k=self.limit,
+        )
+
     def _process_int_range(self, item, field_name, default_item_range=range(0, 1000)):
         if field_name in self.range_per_field.keys():
-            item_range = self.range_per_field[field_name]
-            item[field_name] = random.randint(item_range[0], item_range[-1])
+            item_range = self.range_per_field[field_name]['range']
+            item_frequency_distribution = self.range_per_field[field_name]['frequency_distribution']
+            if item_frequency_distribution:
+                if field_name not in self.choices_per_field:
+                    self._set_choices_per_field(field_name, item_range, item_frequency_distribution)
+                item[field_name] = self.choices_per_field[field_name].pop(0)
+            else:
+                item[field_name] = random.randint(item_range[0], item_range[-1])
         else:
             item[field_name] = random.randint(default_item_range[0], default_item_range[-1])
 
     def _process_text_range(self, item, field_name):
         if field_name in self.range_per_field.keys():
-            item[field_name] = random.choice(self.range_per_field[field_name])
+            item_range = self.range_per_field[field_name]['range']
+            item_frequency_distribution = self.range_per_field[field_name]['frequency_distribution']
+            if item_frequency_distribution:
+                if field_name not in self.choices_per_field:
+                    self._set_choices_per_field(field_name, item_range, item_frequency_distribution)
+                item[field_name] = self.choices_per_field[field_name].pop(0)
+            else:
+                item[field_name] = random.choice(item_range)
 
     def _process_maxlength(self, item, field_name):
         for field in self.maxlength_per_field:
@@ -73,6 +104,7 @@ class Handler(BaseHandler):
                     self.range_per_field,
                     self.maxlength_per_field,
                     self.data,
+                    self.limit,
                 )
                 handler.handle(item, field_name, field_type, counter)
         if field_name not in item:
@@ -160,9 +192,16 @@ class DateTimeHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if field_type in (datetime.datetime, datetime.date):
             if field_name in self.range_per_field.keys():
-                start_date = self.range_per_field[field_name][0]
-                end_date = self.range_per_field[field_name][-1]
-                item[field_name] = random.choice(pd.date_range(start_date, end_date).tolist())
+                item_range = self.range_per_field[field_name]['range']
+                item_frequency_distribution = self.range_per_field[field_name]['frequency_distribution']
+                if item_frequency_distribution:
+                    if field_name not in self.choices_per_field:
+                        self._set_choices_per_field(field_name, item_range, item_frequency_distribution)
+                    item[field_name] = self.choices_per_field[field_name].pop(0)
+                else:
+                    start_date = self.range_per_field[field_name]['range'][0]
+                    end_date = self.range_per_field[field_name]['range'][-1]
+                    item[field_name] = random.choice(pd.date_range(start_date, end_date).tolist())
 
             if field_name in item:
                 item[field_name] = item[field_name].strftime('%d/%m/%Y, %H:%M:%S')
@@ -178,7 +217,7 @@ class IDHandler(BaseHandler):
                 item[field_name] = max(ids) + 1
             else:
                 if field_name in self.range_per_field.keys():
-                    counter = self.range_per_field[field_name][0]
+                    counter = self.range_per_field[field_name]['range'][0]
                 item[field_name] = counter
 
 
