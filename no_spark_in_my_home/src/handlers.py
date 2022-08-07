@@ -33,10 +33,11 @@ class BaseHandler:
         for field in self.maxlength_per_field:
             if field_name == field['field_name']:
                 maxlength = field['maxlength']
+                allowed_symbols = field.get('allowed_symbols', 'A')
                 if field['fixed']:
                     if len(item[field_name]) < maxlength:
                         shift = maxlength - len(item[field_name])
-                        item[field_name] += 'A' * shift
+                        item[field_name] += random.choice(allowed_symbols) * shift
                 if len(item[field_name]) > maxlength:
                     item[field_name] = item[field_name][:maxlength]
 

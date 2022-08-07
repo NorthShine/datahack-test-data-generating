@@ -57,6 +57,25 @@ def test_non_fixed_maxlength_per_field(ManyColumnsData):
         assert len(item['text']) <= 70
 
 
+def test_maxlength_per_field_allowed_symbols(ManyColumnsData):
+    gen = FakeDataGenerator(
+        ManyColumnsData,
+        maxlength_per_field=[
+            {
+                'field_name': 'text',
+                'fixed': True,
+                'maxlength': 1000,
+                'allowed_symbols': '!',
+            },
+        ],
+    )
+    items = gen.load(as_dicts=True)
+    for item in items:
+        assert len(item['text']) <= 1000
+        if len(item['text']) > 999:
+            assert '!' in item['text']
+
+
 def test_mask(ManyColumnsData):
     gen = FakeDataGenerator(
         ManyColumnsData,
