@@ -54,6 +54,7 @@ class FakeDataGenerator:
                     self.range_per_field,
                     self.maxlength_per_field,
                     data,
+                    self.limit,
                 )
                 handler.handle(item, field_name, field_type, counter)
             data.append(item)

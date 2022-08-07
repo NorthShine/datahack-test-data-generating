@@ -18,13 +18,19 @@ class User:
 
 user_gen = FakeDataGenerator(
     User,
-    limit=1000,
+    limit=10,
     mask_per_field={
         'username': 'A#2#######',
     },
     range_per_field={
-        'age': range(10, 20),
-        'user_id': range(10, 100),
+        'age': {
+            'range': [20, 25, 30],
+            'frequency_distribution': [0.1, 0.3, 0.9],
+        },
+        'user_id': {
+            'range': range(10, 100),
+            'frequency_distribution': None,
+        },
     },
     # config='config.json',
 )
