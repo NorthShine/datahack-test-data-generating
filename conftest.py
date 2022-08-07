@@ -23,7 +23,7 @@ def Book():
         [
             ('book_id', int),
             ('title', str),
-            ('Author_author_id', int)
+            ('author_id', int)
         ]
     )
     return clazz
@@ -32,15 +32,14 @@ def Book():
 @pytest.fixture(scope='session')
 def author_data(Author):
     user_data: FakeDataGenerator = FakeDataGenerator(Author, limit=10)
-    user_data = user_data.load()
-    return user_data
+    return user_data.load(as_dicts=True)
 
 
 @pytest.fixture(scope='session')
 def book_data(Book, author_data):
     book_data = FakeDataGenerator(
         Book,
-        limit=10,
+        limit=15,
         foreign_keys=[
             {
                 'self_field': 'author_id',
@@ -51,7 +50,7 @@ def book_data(Book, author_data):
             }
         ]
     )
-    book_data = book_data.load()
+    book_data = book_data.load(as_dicts=True)
     return book_data
 
 
@@ -69,5 +68,5 @@ def every_book_points_at_every_author(Book, author_data):
             }
         ]
     )
-    book_data = book_data.load()
+    book_data = book_data.load(as_dicts=True)
     return book_data

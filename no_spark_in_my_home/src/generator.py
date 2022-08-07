@@ -54,8 +54,8 @@ class FakeDataGenerator:
                 )
                 handler.handle(item, field_name, field_type, counter)
             data.append(item)
-        self._save_to_json(json.dumps(data))
         self._handle_foreign_key_relations(data)
+        self._save_to_json(json.dumps(data))
         df = self.spark.read.json(self.json_filename)
         df = self._parse_where_clause(where_clause) or df
         if as_json:
@@ -103,7 +103,7 @@ class FakeDataGenerator:
 
     def _check_self_field_exists(self, self_field):
         if self_field not in self.fields.keys():
-            raise AttributeError(f'There is not such field {self_field} in {self.model.__name__}')
+            raise AttributeError(f'There is not such field {self_field} in {self.model.__name__} {self.fields.keys()}')
 
     def _handle_single_foreign_key(self, foreign_key_desc: dict, self_data):
         other_model_field_values = []

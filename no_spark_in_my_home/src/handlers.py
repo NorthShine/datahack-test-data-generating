@@ -41,7 +41,8 @@ class Handler(BaseHandler):
                 )
                 handler.handle(item, field_name, field_type, counter)
         if field_name not in item:
-            item[field_name] = self.fake.text()
+            text_generator = Text()
+            item[field_name] = text_generator.sentence()
 
 
 class MimesisPersonProviderHandler(BaseHandler):
@@ -59,7 +60,7 @@ class MimesisPersonProviderHandler(BaseHandler):
                 person = Person(eval(f'Locale.{self.lang}'))
                 try:
                     item[field_name] = eval(f'person.{keyword}(mask=self.mask_per_field.get(field_name))')
-                except TypeError:
+                except (TypeError, AttributeError):
                     item[field_name] = eval(f'person.{keyword}()')
 
 
@@ -148,7 +149,7 @@ class AgeHandler(BaseHandler):
 class TitleHandler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
         if 'title' in field_name:
-            text = Text(eval(f'Locale.{self.lang}')).text(quantity=1)
+            text = Text(eval(f'Locale.{self.lang}')).sentence()
             new_text = []
             for word in text.split():
                 new_text.append(word)
