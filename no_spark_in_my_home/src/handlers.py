@@ -40,6 +40,23 @@ class BaseHandler:
                 if len(item[field_name]) > maxlength:
                     item[field_name] = item[field_name][:maxlength]
 
+    def _process_mask(self, item, field_name):
+        if field_name in self.mask_per_field.keys():
+            mask = self.mask_per_field[field_name]
+            fixed_symbols_ids = []
+            for char_id, char in enumerate(mask):
+                if char != '#':
+                    fixed_symbols_ids.append({
+                        'id': char_id,
+                        'symbol': char,
+                    })
+            for fixed_symbol in fixed_symbols_ids:
+                new_string = list(item[field_name])
+                for char_id, _ in enumerate(item[field_name]):
+                    if char_id == fixed_symbol['id']:
+                        new_string[char_id] = fixed_symbol['symbol']
+                item[field_name] = ''.join(new_string)
+
 
 class Handler(BaseHandler):
     def handle(self, item, field_name, field_type, counter):
@@ -57,6 +74,7 @@ class Handler(BaseHandler):
             text_generator = Text(eval(f'Locale.{self.lang}'))
             item[field_name] = text_generator.sentence()
             self._process_maxlength(item, field_name)
+            self._process_mask(item, field_name)
 
 
 class MimesisPersonProviderHandler(BaseHandler):
@@ -73,10 +91,11 @@ class MimesisPersonProviderHandler(BaseHandler):
             if keyword in field_name:
                 person = Person(eval(f'Locale.{self.lang}'))
                 try:
-                    item[field_name] = eval(f'person.{keyword}(mask=self.mask_per_field.get(field_name))')
+                    item[field_name] = eval(f'person.{keyword}()')
                 except (TypeError, AttributeError):
                     item[field_name] = eval(f'person.{keyword}()')
                 self._process_maxlength(item, field_name)
+                self._process_mask(item, field_name)
 
 
 class MimesisAddressProviderHandler(BaseHandler):
@@ -95,6 +114,7 @@ class MimesisAddressProviderHandler(BaseHandler):
                 address = Address(eval(f'Locale.{self.lang}'))
                 item[field_name] = eval(f'address.{keyword}()')
                 self._process_maxlength(item, field_name)
+                self._process_mask(item, field_name)
 
 
 class MimesisDatetimeProviderHandler(BaseHandler):
@@ -173,6 +193,7 @@ class TitleHandler(BaseHandler):
                     break
             item[field_name] = ' '.join(new_text)
             self._process_maxlength(item, field_name)
+            self._process_mask(item, field_name)
 
 
 class TextHandler(BaseHandler):
@@ -180,3 +201,4 @@ class TextHandler(BaseHandler):
         if field_type is str and field_name in self.range_per_field.keys():
             self._process_text_range(item, field_name)
             self._process_maxlength(item, field_name)
+            self._process_mask(item, field_name)

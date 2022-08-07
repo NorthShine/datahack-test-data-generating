@@ -55,3 +55,18 @@ def test_non_fixed_maxlength_per_field(ManyColumnsData):
     items = gen.load(as_dicts=True)
     for item in items:
         assert len(item['text']) <= 70
+
+
+def test_mask(ManyColumnsData):
+    gen = FakeDataGenerator(
+        ManyColumnsData,
+        mask_per_field={
+            'text': '1#2A',
+        },
+    )
+    items = gen.load(as_dicts=True)
+    for item in items:
+        assert item['text'][0] == '1'
+        assert item['text'][2] == '2'
+        assert item['text'][3] == 'A'
+
