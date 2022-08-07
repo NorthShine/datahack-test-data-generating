@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "no_spark_in_my_home"
-version = "1.0.1"
+version = "1.0.3"
 description = "Yet another Python package for data generation"
 readme = "README.md"
 authors = [
