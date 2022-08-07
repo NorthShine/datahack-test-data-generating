@@ -20,7 +20,7 @@ user_gen = FakeDataGenerator(
     User,
     limit=10,
     mask_per_field={
-        'username': 'A#2#######',
+        'username': 'A#2',
     },
     range_per_field={
         'age': {

@@ -1,0 +1,13 @@
+{
+  "ManyColumnsData": {
+    "limit": 3,
+    "range_per_field": {
+      "my_int": {
+        "range": [1, 5]
+      }
+    },
+    "mask_per_field": {
+      "book_title": "Q"
+    }
+  }
+}

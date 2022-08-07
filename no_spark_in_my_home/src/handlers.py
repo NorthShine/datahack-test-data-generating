@@ -39,7 +39,7 @@ class BaseHandler:
     def _process_int_range(self, item, field_name, default_item_range=range(0, 1000)):
         if field_name in self.range_per_field.keys():
             item_range = self.range_per_field[field_name]['range']
-            item_frequency_distribution = self.range_per_field[field_name]['frequency_distribution']
+            item_frequency_distribution = self.range_per_field[field_name].get('frequency_distribution')
             if item_frequency_distribution:
                 if field_name not in self.choices_per_field:
                     self._set_choices_per_field(field_name, item_range, item_frequency_distribution)
@@ -52,7 +52,7 @@ class BaseHandler:
     def _process_text_range(self, item, field_name):
         if field_name in self.range_per_field.keys():
             item_range = self.range_per_field[field_name]['range']
-            item_frequency_distribution = self.range_per_field[field_name]['frequency_distribution']
+            item_frequency_distribution = self.range_per_field[field_name].get('frequency_distribution')
             if item_frequency_distribution:
                 if field_name not in self.choices_per_field:
                     self._set_choices_per_field(field_name, item_range, item_frequency_distribution)
@@ -193,7 +193,7 @@ class DateTimeHandler(BaseHandler):
         if field_type in (datetime.datetime, datetime.date):
             if field_name in self.range_per_field.keys():
                 item_range = self.range_per_field[field_name]['range']
-                item_frequency_distribution = self.range_per_field[field_name]['frequency_distribution']
+                item_frequency_distribution = self.range_per_field[field_name].get('frequency_distribution')
                 if item_frequency_distribution:
                     if field_name not in self.choices_per_field:
                         self._set_choices_per_field(field_name, item_range, item_frequency_distribution)

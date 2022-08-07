@@ -17,8 +17,3 @@ def test_no_other_has_no_refs(author_data, every_book_points_at_every_author):
 
     for idx in book_fks:
         assert idx in author_ids
-
-
-def test_ensure_data_generator_works_without_fks(Book):
-    book_data = FakeDataGenerator(Book, limit=10)
-    book_data = book_data.load()
